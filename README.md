@@ -14,22 +14,3 @@
 생긴 `owned.json`을 "보유 목록 불러오기"로 선택하세요.
 라이엇 비공식 내부 API를 쓰는 방식이라 언제든 막힐 수 있고, 모든 처리는 내 PC에서만 일어납니다.
 토큰은 저장하지 않고, `owned.js` / `owned.json`은 서버에 올리지 마세요(.gitignore에 포함).
-
-## 개발자용
-
-색을 미리 계산해 두면 방문자 브라우저가 색을 계산하지 않아 빠르고 결과도 일정합니다.
-
-    pip install requests pillow
-    python precompute_colors.py          # colors.json / colors.js 생성 (이어하기 지원)
-    python precompute_colors.py --force  # 분류 기준을 바꿨을 때 전체 재계산
-
-색이 틀린 항목은 `color_overrides.json`에 `{"아이템 이름 또는 id": "blue"}` 형식으로 적고 다시 실행합니다.
-계열: red orange yellow green cyan blue purple pink light gray dark
-
-## 배포 (GitHub Pages)
-
-1. `python precompute_colors.py` 실행 후 `colors.js`가 생겼는지 확인
-2. 이 폴더에서 `git init`, `git add .`, `git status`로 `owned.js` 등이 목록에 없는지 확인
-3. `git commit -m "init"` 후 GitHub에 새 저장소를 만들고 안내대로 `git push`
-4. 저장소 Settings → Pages → Branch를 `main`, 폴더를 `/ (root)`로 지정
-5. 몇 분 뒤 `https://<아이디>.github.io/<저장소 이름>/`에서 접속
