@@ -1,0 +1,9 @@
+# 내 계정 정보가 담긴 파일 - 절대 올리지 마세요
+owned.js
+owned.json
+offers_debug.txt
+
+# 백업/임시
+*.old.html
+__pycache__/
+*.pyc

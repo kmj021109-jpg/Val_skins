@@ -1,0 +1,471 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>발로란트 스킨 조합기</title>
+<style>
+:root{--fg:#ece8e1;--mute:#9a8f94;--acc:#ff4655;--line:#4a3a40;--pan:#1c1217}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--fg);background:#0a0b10 radial-gradient(ellipse 80% 50% at 50% 0,#3d101c 0,#0a0b10 70%) fixed;font:14px/1.5 "Pretendard","Noto Sans KR",system-ui,sans-serif}
+button,select,input{font:inherit;color:inherit}
+header{display:flex;align-items:center;gap:20px;max-width:1500px;margin:0 auto;padding:16px 24px 0}
+header h1{font-size:20px;margin:0}
+.cost{flex:1;text-align:center}
+#tot{font-size:26px;font-weight:700}
+#sub{color:var(--mute);font-size:12px}
+.btn{background:var(--pan);border:1px solid var(--line);padding:6px 12px;cursor:pointer;font-size:13px}
+.btn:hover{border-color:var(--acc)}
+.btn.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#board{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:22px;max-width:1500px;margin:0 auto;padding:10px 24px 70px}
+h2{font-size:17px;text-align:center;margin:22px 0 10px}
+.ws{position:relative;height:96px;margin-bottom:10px;border:1px solid var(--line);background:linear-gradient(#2c1a21,#1a1014);cursor:pointer;overflow:hidden}
+.ws:hover,.cs:hover,.ex:hover{border-color:var(--acc)}
+.ws .g{position:absolute;left:10%;top:6px;width:80%;height:62px;object-fit:contain}
+.ws span{position:absolute;left:8px;bottom:5px;right:8px;color:var(--mute);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pend{position:absolute;top:46%;display:flex;flex-direction:column;align-items:center;transform-origin:top center}
+.pend.r{right:7%}.pend.l{left:7%}
+.pend:hover{animation:sw 1.2s ease-in-out}
+.pend u{width:0;height:8px;border-left:2px dotted #b4a9ae}
+.pend img{width:34px;height:34px;object-fit:contain}
+@keyframes sw{25%{transform:rotate(16deg)}75%{transform:rotate(-16deg)}}
+.cs{height:340px;border:1px solid var(--line);background:linear-gradient(#2c1a21,#1a1014);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--mute)}
+.cs img{height:100%;max-width:100%;object-fit:contain}
+.wheel{position:relative;width:200px;height:200px;margin:6px auto;border:1px solid var(--line);border-radius:50%}
+.ex{position:absolute;width:64px;height:64px;border:1px solid var(--line);border-radius:50%;background:var(--pan);cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;color:var(--mute);font-size:20px}
+.ex img{width:100%;height:100%;object-fit:contain}
+.p0{left:68px;top:-6px}.p1{right:-6px;top:68px}.p2{left:68px;bottom:-6px}.p3{left:-6px;top:68px}
+.ov{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;z-index:5}
+.ov.on{display:flex}
+.panel{width:min(1000px,95vw);height:85vh;background:#140d11;border:1px solid var(--line);display:flex;flex-direction:column;padding:16px}
+.mh{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.mh h3{margin:0 8px 0 0;font-size:16px}
+.mh input[type=search],.mh select{background:var(--pan);border:1px solid var(--line);padding:5px 8px}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
+.chip{display:flex;align-items:center;gap:6px;background:var(--pan);border:1px solid var(--line);padding:3px 11px;font-size:12px;cursor:pointer}
+.chip i{width:11px;height:11px;border-radius:50%;border:1px solid #fff4}
+.chip.on{background:var(--acc);border-color:var(--acc);color:#fff}
+#mst{color:var(--mute);font-size:12px;margin-bottom:6px}
+.grid{flex:1;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;align-content:start}
+.it{position:relative;background:var(--pan);border:1px solid var(--line);padding:6px;cursor:pointer}
+.it:hover,.it.pick{border-color:var(--acc)}
+.it.no img{opacity:.4}
+.it img{width:100%;height:76px;object-fit:contain}
+.it p{margin:4px 0 0;font-size:12px;line-height:1.3;height:32px;overflow:hidden}
+.it .vp{position:absolute;right:4px;top:4px;font-size:11px;background:#000a;padding:0 4px}
+.it .dot{position:absolute;left:5px;top:5px;width:11px;height:11px;border-radius:50%;border:1px solid #fff4}
+.it .sc{position:absolute;left:4px;bottom:38px;font-size:11px;background:#000a;padding:0 4px}
+#help{position:fixed;right:16px;bottom:16px;z-index:4;border-radius:20px;padding:8px 14px}
+.gp{width:min(760px,95vw);max-height:88vh;overflow:auto;background:#140d11;border:1px solid var(--line);padding:20px}
+.gp h3{margin:0 0 4px}.gp ol{padding-left:20px}.gp li{margin-bottom:12px}
+.gp pre{background:#0a0b10;border:1px solid var(--line);padding:10px;overflow:auto;max-height:220px;font-size:12px;margin:6px 0}
+.gp .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.gp code{background:#0a0b10;padding:2px 8px;border:1px solid var(--line)}
+footer{max-width:1500px;margin:0 auto;padding:0 24px 70px;color:var(--mute);font-size:12px;line-height:1.7}
+footer a{color:var(--mute)}
+@media(max-width:1000px){#board{grid-template-columns:repeat(2,1fr)}header{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header>
+  <h1>발로란트 스킨 조합기</h1>
+  <div class="cost"><div id="tot">조합 비용: 0 VP</div><div id="sub"></div></div>
+  <label class="btn">보유 목록 불러오기<input type="file" id="ownfile" accept=".json" hidden></label>
+  <label class="btn"><input type="checkbox" id="att"> 장식 위치 반전</label>
+  <button class="btn" id="reset">조합 초기화</button>
+</header>
+<div id="board"></div>
+<footer>
+  이 사이트는 Riot Games와 관련 없는 비공식 팬 프로젝트이며 Riot Games의 보증을 받지 않았습니다. VALORANT 및 관련 이미지와 이름은 Riot Games의 상표 또는 자산입니다.<br>
+  데이터·이미지 출처: <a href="https://valorant-api.com" target="_blank" rel="noopener">valorant-api.com</a> · 가격의 ~ 표시는 상점가가 아닌 등급별 추정가입니다. · 보유 목록은 내 PC에서만 처리되며 서버로 전송되지 않습니다.
+</footer>
+<button class="btn" id="help">owned.js 만드는 법</button>
+
+<div class="ov" id="modal"><div class="panel">
+  <div class="mh">
+    <h3 id="mt"></h3><span id="mtabs" class="mh" style="margin:0"></span>
+    <input type="search" id="q" placeholder="이름 검색">
+    <select id="sort" title="점수 = 같은 테마 40점(유사색 모드만) + 색 유사도 최대 60점. 카드의 점수에 마우스를 올리면 상세 내역이 보입니다."><option value="off">기본 정렬</option><option value="sim"></option><option value="comp"></option></select>
+    <label><input type="checkbox" id="only"> 보유만</label>
+    <button class="btn" id="clr">선택 해제</button>
+    <button class="btn" id="cls" style="margin-left:auto">닫기</button>
+  </div>
+  <div class="chips" id="chips"></div>
+  <div id="mst"></div>
+  <div class="grid" id="grid"></div>
+</div></div>
+
+<div class="ov" id="gm"><div class="gp">
+  <h3>내 보유 목록(owned.js) 만드는 법</h3>
+  <div class="hint" style="color:var(--mute);font-size:12px">라이엇 비공식 내부 API를 쓰는 방식이라 언제든 바뀔 수 있습니다. 토큰은 저장하지 않고 아이템 UUID와 가격만 저장합니다.</div>
+  <ol>
+    <li>라이엇 클라이언트에 로그인하고 발로란트를 실행해 둡니다.</li>
+    <li>명령 프롬프트에서 라이브러리를 설치합니다.
+      <div class="row"><code>pip install requests</code><button class="btn cp" data-l="복사" data-t="pip install requests">복사</button></div></li>
+    <li>아래 코드를 복사해 이 페이지와 같은 폴더에 <b>fetch_owned.py</b>로 저장합니다.
+      <pre id="pyshow"></pre>
+      <button class="btn cp" data-l="코드 복사" data-src="#py">코드 복사</button></li>
+    <li>그 폴더에서 실행합니다. (한국 서버 기본값 kr, 다른 서버는 <code>--shard ap</code> 등)
+      <div class="row"><code>python fetch_owned.py</code><button class="btn cp" data-l="복사" data-t="python fetch_owned.py">복사</button></div></li>
+    <li>같은 폴더에 owned.js, owned.json이 생기면 이 페이지를 새로고침합니다.</li>
+  </ol>
+  <button class="btn" id="gcls">닫기</button>
+</div></div>
+<script type="text/plain" id="py">import argparse, base64, json, os, sys
+import requests, urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+ITEM_TYPES = {
+    "skin_level": "e7c63390-eda7-46e0-bb7a-a6abdacd2433",
+    "skin_chroma": "3ad1b2b2-acdb-4524-852f-954a76ddae0a",
+    "buddy": "dd3bf334-87f3-40bd-b043-682a57a8dc3a",
+    "player_card": "3f296c07-64c3-494c-923b-fe692a4fa1bd",
+    "spray": "d5f120f8-ff8c-4aac-92ea-f2b5acbe9475",
+    "flex": "03a572de-4234-31ed-d344-ababa488f981",
+}
+VP_ID = "85ad13f7-3d1b-5128-9eb2-7cd8ee0b5741"
+
+
+def read_lockfile():
+    base = os.environ.get("LOCALAPPDATA")
+    if not base:
+        sys.exit("Windows의 LOCALAPPDATA를 찾지 못했습니다.")
+    path = os.path.join(base, "Riot Games", "Riot Client", "Config", "lockfile")
+    try:
+        name, pid, port, password, proto = open(path).read().split(":")
+    except FileNotFoundError:
+        sys.exit("lockfile이 없습니다. 라이엇 클라이언트/발로란트를 먼저 실행하고 로그인하세요.")
+    return port, password, proto
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--shard", default="kr")
+    shard = ap.parse_args().shard
+
+    port, pw, proto = read_lockfile()
+    r = requests.get(f"{proto}://127.0.0.1:{port}/entitlements/v1/token",
+                     auth=("riot", pw), verify=False, timeout=10)
+    if r.status_code != 200:
+        sys.exit(f"토큰을 받지 못했습니다 ({r.status_code}). 로그인 상태인지 확인하세요.")
+    t = r.json()
+    access, ent, puuid = t["accessToken"], t["token"], t["subject"]
+
+    version = requests.get("https://valorant-api.com/v1/version", timeout=10).json()["data"]["riotClientVersion"]
+    platform = base64.b64encode(json.dumps({
+        "platformType": "PC", "platformOS": "Windows",
+        "platformOSVersion": "10.0.19042.1.256.64bit", "platformChipset": "Unknown",
+    }).encode()).decode()
+    headers = {
+        "Authorization": f"Bearer {access}",
+        "X-Riot-Entitlements-JWT": ent,
+        "X-Riot-ClientVersion": version,
+        "X-Riot-ClientPlatform": platform,
+    }
+
+    items, counts = set(), {}
+    for name, type_id in ITEM_TYPES.items():
+        url = f"https://pd.{shard}.a.pvp.net/store/v1/entitlements/{puuid}/{type_id}"
+        try:
+            res = requests.get(url, headers=headers, timeout=15)
+            if res.status_code != 200:
+                print(f"[건너뜀] {name}: HTTP {res.status_code}")
+                continue
+            ids = [e["ItemID"] for e in res.json().get("Entitlements", [])]
+        except Exception as ex:
+            print(f"[건너뜀] {name}: {ex}")
+            continue
+        counts[name] = len(ids)
+        items.update(ids)
+        print(f"{name}: {len(ids)}개")
+
+    prices = {}
+    try:
+        res = None
+        for u in ("store/v1/offers", "store/v1/offers/"):
+            res = requests.get(f"https://pd.{shard}.a.pvp.net/{u}", headers=headers, timeout=20)
+            if res.status_code == 200:
+                break
+        data = res.json()
+        offers = data.get("Offers", []) if isinstance(data, dict) else []
+        print(f"가격 조회: HTTP {res.status_code}, 오퍼 {len(offers)}개")
+        for o in offers:
+            vp = (o.get("Cost") or {}).get(VP_ID)
+            if vp is None:
+                continue
+            prices[o["OfferID"]] = vp
+            for rw in o.get("Rewards", []):
+                prices[rw["ItemID"]] = vp
+        print(f"가격 정보: {len(prices)}개")
+        if offers and not prices:
+            print("비용 키 예시:", list((offers[0].get("Cost") or {}).keys()))
+        if not offers:
+            dbg = os.path.join(os.path.dirname(os.path.abspath(__file__)), "offers_debug.txt")
+            with open(dbg, "w", encoding="utf-8") as f:
+                f.write(res.text[:2000])
+            print("응답 앞부분을 offers_debug.txt에 저장했습니다.")
+    except Exception as ex:
+        print(f"[건너뜀] 가격 정보: {ex}")
+
+    if not items:
+        sys.exit("가져온 항목이 없습니다. --shard 값이나 로그인 상태를 확인하세요.")
+
+    out = sorted(items)
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, "owned.json"), "w", encoding="utf-8") as f:
+        json.dump({"items": out, "prices": prices, "counts": counts}, f, ensure_ascii=False)
+    with open(os.path.join(here, "owned.js"), "w", encoding="utf-8") as f:
+        f.write("window.OWNED=" + json.dumps(out) + ";window.PRICES=" + json.dumps(prices) + ";")
+    print(f"저장 완료: owned.json, owned.js ({len(out)}개 UUID)")
+
+
+if __name__ == "__main__":
+    main()
+</script>
+<script src="owned.js"></script>
+<script src="colors.js"></script>
+<script src="prices.js"></script>
+<script>
+const API='https://valorant-api.com/v1/',$=s=>document.querySelector(s),nf=n=>n.toLocaleString('ko-KR');
+const COLS=[[['Sidearm','보조무기']],[['SMG','SMG'],['Shotgun','샷건'],['Melee','근접 무기']],[['Rifle','라이플']],[['Sniper','스나이퍼'],['Heavy','머신건']]];
+const TABS={w:[['skin','스킨'],['chroma','변형(크로마)'],['buddy','총기장식']],card:[['card','플레이어 카드']],ex:[['spray','스프레이'],['flex','플렉스']]};
+/* 상점가 정보가 없을 때 쓰는 등급별 추정가(VP) */
+const GUNP={Select:875,Deluxe:1275,Premium:1775,Exclusive:2175,Ultra:2475},MELP={Select:1750,Deluxe:2550,Premium:3550,Exclusive:4350,Ultra:4950};
+const tabsOf=m=>m.kind==='w'&&S.weapons.find(w=>w.id===m.id).cat==='Melee'?TABS.w.filter(t=>t[0]!=='buddy'):TABS[m.kind];
+const FAM=[['all','전체',''],['red','빨강','hsl(0 75% 55%)'],['orange','주황','hsl(30 75% 55%)'],['yellow','노랑','hsl(55 75% 55%)'],['green','초록','hsl(120 75% 45%)'],['cyan','청록','hsl(185 75% 50%)'],['blue','파랑','hsl(225 75% 60%)'],['purple','보라','hsl(280 75% 60%)'],['pink','분홍','hsl(325 75% 60%)'],['light','흰색','#eee'],['gray','회색','#888'],['dark','검정','#222']];
+const ORDER=['Classic','Shorty','Frenzy','Ghost','Bandit','Sheriff','Stinger','Spectre','Bucky','Judge','Bulldog','Guardian','Warden','Phantom','Vandal','Marshal','Outlaw','Operator','Ares','Odin','Melee'];
+const STOP=/^(총기장식|카드|스프레이|플렉스|스킨)$/;
+const ls=(k,d)=>{try{return JSON.parse(localStorage[k])}catch(e){return d}};
+const sv=(k,v)=>{try{localStorage[k]=JSON.stringify(v)}catch(e){}};
+const S={items:{},weapons:[],list:{},color:(ls('vcColV',0)===3?ls('vcCol',{}):(sv('vcColV',3),{})),build:ls('vcBuild',{}),price:ls('vcPrice',{}),auto:new Set(ls('vcAuto',[])),ref:null,m:null,tab:'',q:'',fam:'all',sort:'off',only:false,limit:120};
+function setOwnedData(ids,prices){
+  S.auto=new Set(ids||[]);sv('vcAuto',[...S.auto]);
+  if(prices&&Object.keys(prices).length){Object.assign(S.price,prices);sv('vcPrice',S.price)}
+}
+if(window.OWNED)setOwnedData(window.OWNED,window.PRICES);
+if(window.COLORS)Object.assign(S.color,window.COLORS); /* precompute_colors.py 가 만든 대표색이 있으면 우선 사용 */
+if(window.PRICE_TABLE)S.price=Object.assign({},window.PRICE_TABLE,S.price); /* fetch_prices.py 가 만든 상점가 */
+
+const isOwned=it=>it.ids.some(i=>S.auto.has(i));
+const real=it=>Math.max(0,...it.ids.map(i=>S.price[i]||0));
+const est=it=>it.type==='skin'&&it.tier?((it.melee?MELP:GUNP)[it.tier]||0):0;
+const isEst=it=>!real(it)&&est(it)>0;
+const price=it=>real(it)||est(it);
+
+async function get(p,lang='ko-KR'){return (await (await fetch(API+p+'?language='+lang)).json()).data}
+async function load(){
+  const [ws,bd,cd,sp,fx,ct,en]=await Promise.all(['weapons','buddies','playercards','sprays','flex','contenttiers'].map(p=>get(p)).concat(get('weapons','en-US')));
+  const E={},TT={};en.forEach(w=>E[w.uuid]=w.displayName);ct.forEach(t=>TT[t.uuid]=t.devName);
+  const add=(o,type)=>(o.type=type,S.items[o.id]=o);
+  S.weapons=ws.map(w=>({id:w.uuid,en:E[w.uuid],name:w.displayName,cat:w.category.split('::')[1],img:w.displayIcon,
+    skins:w.skins.filter(s=>!/스탠다드|무작위|Standard|Random/.test(s.displayName)).map(s=>{
+      const sk=add({id:s.uuid,name:s.displayName,tier:TT[s.contentTierUuid],melee:w.category.endsWith('Melee'),
+        ids:[s.uuid,...s.levels.map(l=>l.uuid),...s.chromas.map(c=>c.uuid)],
+        img:s.displayIcon||(s.levels[0]||{}).displayIcon||(s.chromas[0]||{}).fullRender},'skin');
+      const base=add({id:s.uuid+'-base',name:'기본 · '+s.displayName,img:sk.img,ids:[s.uuid,...s.levels.map(l=>l.uuid),...(s.chromas[0]&&s.chromas[0].displayName===s.displayName?[s.chromas[0].uuid]:[])]},'chroma');
+      sk.chromaItems=[base,...(s.chromas||[]).filter((c,i)=>!(i===0&&c.displayName===s.displayName)).map(c=>add({id:c.uuid,name:c.displayName,ids:[c.uuid],img:c.fullRender||c.displayIcon},'chroma')).filter(c=>c.img)];
+      return sk}).filter(s=>s.img)}));
+  const ord=w=>{const i=ORDER.indexOf(w.en);return i<0?99:i};
+  S.weapons.sort((a,b)=>ord(a)-ord(b));
+  S.list.buddy=bd.map(b=>add({id:b.uuid,name:b.displayName,ids:[b.uuid,...b.levels.map(l=>l.uuid)],img:b.displayIcon},'buddy')).filter(x=>x.img);
+  S.list.card=cd.map(c=>add({id:c.uuid,name:c.displayName,ids:[c.uuid],img:c.smallArt||c.displayIcon,big:c.largeArt},'card')).filter(x=>x.img);
+  S.list.spray=sp.map(s=>add({id:s.uuid,name:s.displayName,ids:[s.uuid],img:s.fullTransparentIcon||s.displayIcon},'spray')).filter(x=>x.img);
+  S.list.flex=fx.map(f=>add({id:f.uuid,name:f.displayName,ids:[f.uuid],img:f.displayIcon},'flex')).filter(x=>x.img);
+  S.ref=S.items[ls('vcRef','')]||null;
+}
+
+/* ---------- 색 추출 / 추천 ---------- */
+function analyze(url,type){const gun=type==='skin'||type==='chroma',sMin=gun?0.3:0.18,cov=gun?0.03:0.12;return new Promise(res=>{
+  const im=new Image();im.crossOrigin='anonymous';im.onerror=()=>res(null);
+  im.onload=()=>{try{
+    const c=document.createElement('canvas');c.width=c.height=32;
+    const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(im,0,0,32,32);
+    const d=x.getImageData(0,0,32,32).data,bx=Array(12).fill(0),by=Array(12).fill(0),bw=Array(12).fill(0);
+    let n=0,sl=0,viv=0,cc=0;
+    for(let i=0;i<d.length;i+=4){
+      if(d[i+3]<128)continue;
+      const r=d[i]/255,g=d[i+1]/255,b=d[i+2]/255,mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2,df=mx-mn;
+      const s=df===0?0:df/(1-Math.abs(2*l-1));let h=0;
+      if(df){h=mx===r?((g-b)/df)%6:mx===g?(b-r)/df+2:(r-g)/df+4;h*=60;if(h<0)h+=360}
+      n++;sl+=l;
+      if(s<sMin||l<0.1||l>0.93)continue;
+      const w=gun?s*(1-Math.abs(2*l-1)):s;cc++;viv+=s;
+      const k=Math.floor(h/30)%12,a=h*Math.PI/180;bw[k]+=w;bx[k]+=w*Math.cos(a);by[k]+=w*Math.sin(a);
+    }
+    if(!n)return res(null);
+    const L=+(sl/n).toFixed(2);
+    if(cc/n<cov)return res([-1,0,L]);
+    let best=0,bs=-1;
+    for(let k=0;k<12;k++){const t=bw[k]+bw[(k+11)%12]+bw[(k+1)%12];if(t>bs){bs=t;best=k}}
+    let X=0,Y=0;[best,(best+11)%12,(best+1)%12].forEach(k=>{X+=bx[k];Y+=by[k]});
+    let h=Math.atan2(Y,X)*180/Math.PI;if(h<0)h+=360;
+    res([Math.round(h),+Math.min(1,viv/cc).toFixed(2),L]);
+  }catch(e){res(null)}};
+  im.src=url;
+})}
+function famOf(c){
+  if(!c)return null;const h=c[0];
+  if(h<0)return c[2]>=0.62?'light':c[2]>=0.3?'gray':'dark';
+  return h<15||h>=345?'red':h<45?'orange':h<70?'yellow':h<165?'green':h<200?'cyan':h<255?'blue':h<300?'purple':'pink';
+}
+const dotColor=c=>c[0]<0?`hsl(0 0% ${c[2]*100}%)`:`hsl(${c[0]} 75% 55%)`;
+async function ensure(items){
+  const todo=items.filter(i=>!(i.id in S.color));
+  if(!todo.length)return;
+  let done=0,idx=0;
+  const worker=async()=>{while(idx<todo.length){const it=todo[idx++];S.color[it.id]=(await analyze(it.img,it.type))||[-1,0,0.5];done++;
+    if(done%30===0){$('#mst').textContent=`색상 분석 중… ${done}/${todo.length}`;renderModal()}}};
+  $('#mst').textContent=`색상 분석 중… 0/${todo.length}`;
+  await Promise.all(Array.from({length:8},worker));
+  sv('vcCol',S.color);renderModal();
+}
+const tok=n=>new Set((n||'').split(/[\s\/\-·]+/).filter(t=>t.length>=2&&!STOP.test(t)));
+/* 점수(100점) = 같은 테마 40점(유사색 모드만) + 색 유사도 최대 60점 */
+function score(ref,it,mode){
+  const a=S.color[ref.id],b=S.color[it.id];let s=0,why='색 분석 전';
+  if(a&&b){
+    const an=a[0]<0,bn=b[0]<0;
+    if(an&&bn){s=1-Math.abs(a[2]-b[2]);why='둘 다 무채색, 밝기 차이 '+Math.round(Math.abs(a[2]-b[2])*100)+'%'}
+    else if(an||bn){s=0.3;why='한쪽만 무채색'}
+    else{let d=Math.abs((mode==='comp'?a[0]+180:a[0])-b[0])%360;if(d>180)d=360-d;
+      s=Math.max(0,1-d/90)*(0.6+0.4*Math.min(1,b[1]*1.5));why='색상 차이 '+Math.round(d)+'도'}
+  }
+  let th=0;const A=tok(ref.name);
+  if(mode==='sim'&&[...tok(it.name)].some(t=>A.has(t)))th=40;
+  it.why=(th?'같은 테마 +40, ':'')+'색 '+Math.round(60*s)+'/60 ('+why+')';
+  return Math.min(100,Math.round(th+60*s));
+}
+
+/* ---------- 보드 ---------- */
+function mk(cls,html,fn){const d=document.createElement('div');d.className=cls;d.innerHTML=html||'';if(fn)d.onclick=fn;return d}
+function wslot(w){
+  const sk=S.items[S.build[w.id+'.skin']],ch=S.items[S.build[w.id+'.chroma']],bd=w.cat==='Melee'?null:S.items[S.build[w.id+'.buddy']],v=ch||sk;
+  const d=mk('ws',`<img class="g" src="${v?v.img:w.img}" alt="">`+(bd?`<div class="pend ${$('#att').checked?'l':'r'}"><u></u><img src="${bd.img}" alt=""></div>`:'')+'<span></span>',()=>openM('w',w.id));
+  d.querySelector('span').textContent=v?v.name:w.name;return d;
+}
+function renderBoard(){
+  const b=$('#board');b.innerHTML='';
+  COLS.forEach(col=>{
+    const c=document.createElement('div');
+    col.forEach(([k,label])=>{const h=document.createElement('h2');h.textContent=label;c.appendChild(h);
+      S.weapons.filter(w=>w.cat===k).forEach(w=>c.appendChild(wslot(w)))});
+    b.appendChild(c);
+  });
+  const r=document.createElement('div'),cd=S.items[S.build.card];
+  r.innerHTML='<h2>플레이어 카드</h2>';
+  r.appendChild(mk('cs',cd?`<img src="${cd.big||cd.img}" alt="">`:'카드 선택',()=>openM('card','card')));
+  r.insertAdjacentHTML('beforeend','<h2>스프레이 · 플렉스</h2>');
+  const wh=mk('wheel');
+  for(let i=0;i<4;i++){const it=S.items[S.build['ex'+i]];wh.appendChild(mk('ex p'+i,it?`<img src="${it.img}" alt="">`:'+',()=>openM('ex','ex'+i)))}
+  r.appendChild(wh);b.appendChild(r);
+  renderTotals();
+}
+function renderTotals(){
+  const sel=Object.values(S.build).map(id=>S.items[id]).filter(Boolean);
+  const tot=sel.reduce((a,i)=>a+price(i),0),have=S.auto.size>0,hasP=Object.keys(S.price).length>0;
+  const miss=sel.filter(i=>!isOwned(i)).reduce((a,i)=>a+price(i),0);
+  const mine=Object.values(S.items).filter(isOwned);
+  $('#tot').textContent=`조합 비용: ${nf(tot)} VP`;
+  const anyEst=sel.some(isEst)||(have&&mine.some(isEst));
+  $('#sub').textContent=(have
+    ?`미보유 구매 필요 ${nf(miss)} VP · 보유 아이템 가치 합계(추정) ${nf(mine.reduce((a,i)=>a+price(i),0))} VP (스킨 ${mine.filter(i=>i.type==='skin').length}개)`
+    :'보유 목록이 없어 미보유 금액은 계산하지 않았습니다 (오른쪽 아래 "owned.js 만드는 법")')+(anyEst?' · ~ 표시는 상점가 대신 등급별 추정가':'');
+}
+
+/* ---------- 선택 창 ---------- */
+const slotKey=()=>S.m.kind==='w'?S.m.id+'.'+S.tab:S.m.id;
+const tabItems=()=>{
+  if(S.m.kind!=='w')return S.list[S.tab];
+  if(S.tab==='skin')return S.weapons.find(w=>w.id===S.m.id).skins;
+  if(S.tab==='chroma'){const sk=S.items[S.build[S.m.id+'.skin']];return sk?sk.chromaItems:[]}
+  return S.list[S.tab];
+};
+const isMelee=()=>S.weapons.find(w=>w.id===S.m.id).cat==='Melee';
+function openM(kind,id){
+  S.m={kind,id};S.tab=TABS[kind][0][0];S.limit=120;
+  $('#mt').textContent=kind==='w'?S.weapons.find(w=>w.id===id).name:kind==='card'?'플레이어 카드':'스프레이 · 플렉스';
+  $('#modal').classList.add('on');renderModal();
+}
+const closeM=()=>$('#modal').classList.remove('on');
+function visible(){
+  let l=tabItems();const q=S.q.trim().toLowerCase();
+  if(q)l=l.filter(i=>i.name.toLowerCase().includes(q));
+  if(S.only)l=l.filter(isOwned);
+  if(S.fam!=='all')l=l.filter(i=>famOf(S.color[i.id])===S.fam);
+  if(S.sort!=='off'&&S.ref)l=l.map(i=>(i.sc=score(S.ref,i,S.sort),i)).sort((a,b)=>b.sc-a.sc);
+  return l;
+}
+function renderChips(){
+  const c=$('#chips');c.innerHTML='';
+  FAM.forEach(([k,l,bg])=>{const b=document.createElement('button');b.className='chip'+(S.fam===k?' on':'');
+    b.innerHTML=(bg?`<i style="background:${bg}"></i>`:'')+l;
+    b.onclick=()=>{S.fam=k;S.limit=120;refresh()};c.appendChild(b)});
+}
+function renderModal(){
+  renderChips();
+  const tb=$('#mtabs');tb.innerHTML='';
+  tabsOf(S.m).forEach(([k,l])=>{const b=document.createElement('button');b.className='btn'+(k===S.tab?' on':'');b.textContent=l;
+    b.onclick=()=>{S.tab=k;S.limit=120;refresh()};tb.appendChild(b)});
+  const rn=S.ref?S.ref.name:'먼저 스킨을 고르세요';
+  $('#sort').options[1].textContent='유사색 순 (기준: '+rn+')';$('#sort').options[2].textContent='보색 순 (기준: '+rn+')';
+  const l=visible(),g=$('#grid'),cur=S.build[slotKey()],have=S.auto.size>0;g.innerHTML='';
+  l.slice(0,S.limit).forEach(it=>{
+    const d=mk('it'+(cur===it.id?' pick':'')+(have&&!isOwned(it)?' no':''),`<img loading="lazy" src="${it.img}" alt=""><p></p>`,()=>pick(it));
+    d.querySelector('p').textContent=it.name;
+    const c=S.color[it.id];
+    if(c)d.insertAdjacentHTML('beforeend',`<span class="dot" title="대표색: ${(FAM.find(f=>f[0]===famOf(c))||[])[1]} (색상 ${c[0]}도, 채도 ${Math.round(c[1]*100)}%, 밝기 ${Math.round(c[2]*100)}%)" style="background:${dotColor(c)}"></span>`);
+    const p=price(it);if(p)d.insertAdjacentHTML('beforeend',`<span class="vp">${isEst(it)?'~':''}${nf(p)} VP</span>`);
+    if(S.sort!=='off'&&S.ref&&c)d.insertAdjacentHTML('beforeend',`<span class="sc" title="${it.why}">${it.sc}점${it.why.startsWith('같은')?' · 같은 테마':''}</span>`);
+    g.appendChild(d);
+  });
+  if(l.length>S.limit){const b=document.createElement('button');b.className='btn';b.textContent='더 보기';b.onclick=()=>{S.limit+=120;renderModal()};g.appendChild(b)}
+  if(!/분석 중/.test($('#mst').textContent)||!l.length)$('#mst').textContent=`${l.length}개`+(S.fam!=='all'||S.sort!=='off'?' (색 분석된 항목 기준)':'');
+  if(S.tab==='chroma'&&!tabItems().length)$('#mst').textContent='먼저 스킨 탭에서 스킨을 골라 주세요.';
+}
+function refresh(){renderModal();if(S.fam!=='all'||S.sort!=='off')ensure(tabItems())}
+async function pick(it){
+  S.build[slotKey()]=it.id;
+  if(it.type==='skin')delete S.build[S.m.id+'.chroma'];
+  sv('vcBuild',S.build);
+  if(!(it.id in S.color)){S.color[it.id]=(await analyze(it.img,it.type))||[-1,0,0.5];sv('vcCol',S.color)}
+  if(it.type==='skin'||it.type==='chroma'){S.ref=it;sv('vcRef',it.id)}
+  renderBoard();
+  const next=()=>{if(isMelee())closeM();else{S.tab='buddy';S.limit=120;refresh()}};
+  if(it.type==='skin'){if(it.chromaItems.length>1){S.tab='chroma';S.limit=120;refresh()}else next()}
+  else if(it.type==='chroma')next();
+  else closeM();
+}
+$('#cls').onclick=closeM;
+$('#modal').onclick=e=>{if(e.target.id==='modal')closeM()};
+$('#clr').onclick=()=>{if(S.tab==='skin')delete S.build[S.m.id+'.chroma'];delete S.build[slotKey()];sv('vcBuild',S.build);renderBoard();closeM()};
+$('#q').oninput=e=>{S.q=e.target.value;S.limit=120;renderModal()};
+$('#sort').onchange=e=>{S.sort=e.target.value;refresh()};
+$('#only').onchange=e=>{S.only=e.target.checked;renderModal()};
+$('#att').onchange=renderBoard;
+$('#reset').onclick=()=>{if(confirm('조합을 모두 비울까요?')){S.build={};sv('vcBuild',S.build);renderBoard()}};
+$('#ownfile').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{const j=JSON.parse(await f.text());setOwnedData(j.items||j,j.prices);renderBoard()}
+  catch(x){$('#sub').textContent='파일을 읽지 못했습니다.'}
+};
+
+/* ---------- owned.js 가이드 ---------- */
+$('#pyshow').textContent=$('#py').textContent;
+$('#help').onclick=()=>$('#gm').classList.add('on');
+$('#gcls').onclick=()=>$('#gm').classList.remove('on');
+$('#gm').onclick=e=>{if(e.target.id==='gm')$('#gm').classList.remove('on')};
+document.querySelectorAll('.cp').forEach(btn=>btn.onclick=async()=>{
+  const t=btn.dataset.t||$(btn.dataset.src).textContent;
+  try{await navigator.clipboard.writeText(t)}
+  catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();document.execCommand('copy');a.remove()}
+  btn.textContent='복사됨';setTimeout(()=>btn.textContent=btn.dataset.l,1500);
+});
+
+(async()=>{
+  try{await load();renderBoard()}
+  catch(e){$('#sub').textContent='valorant-api.com에서 데이터를 불러오지 못했습니다. 인터넷 연결을 확인하고 새로고침해 주세요.'}
+})();
+</script>
+</body>
+</html>
